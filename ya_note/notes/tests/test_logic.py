@@ -84,7 +84,7 @@ class TestNoteEditDelete(TestCase):
         cls.author_client.force_login(cls.author)
         cls.reader_client = Client()
         cls.reader_client.force_login(cls.reader)
-        cls.new_data = {  # Исправлено с self на cls
+        cls.new_data = {
             'title': 'Новый заголовок',
             'text': 'Новый текст',
             'slug': 'new-slug'

@@ -9,18 +9,18 @@ from pytest_lazyfixture import lazy_fixture
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
-    'name, args',
+    'name, args, method',
     [
-        ('news:home', None),
-        ('users:login', None),
-        ('users:logout', None),
-        ('users:signup', None),
-        ('news:detail', lazy_fixture('news_id')),
+        ('news:home', None, 'GET'),
+        ('users:login', None, 'GET'),
+        ('users:logout', None, 'POST'),
+        ('users:signup', None, 'GET'),
+        ('news:detail', lazy_fixture('news_id'), 'GET'),
     ]
 )
-def test_pages_availability(client, name, args):
+def test_pages_availability(client, name, args, method):
     url = reverse(name, args=args)
-    response = client.get(url)
+    response = client.generic(method, url)
     assert response.status_code == HTTPStatus.OK
 
 

@@ -95,7 +95,14 @@ class TestRoutes(TestCase):
 
     def test_logout_redirect(self):
         logout_url = reverse('users:logout')
-        response = self.client.get(logout_url)
-        self.assertEqual(response.status_code, HTTPStatus.METHOD_NOT_ALLOWED)
-        response_post = self.client.post(logout_url)
-        self.assertEqual(response_post.status_code, HTTPStatus.FOUND)
+        response_get = self.client.get(logout_url)
+        self.assertEqual(response_get.status_code,
+                         HTTPStatus.METHOD_NOT_ALLOWED)
+        self.client.force_login(self.author)
+        response_authenticated = self.client.post(logout_url)
+        self.assertEqual(response_authenticated.status_code, HTTPStatus.FOUND)
+        self.assertRedirects(response_authenticated, reverse('notes:home'))
+        response_anonymous = self.client.post(logout_url)
+        self.assertEqual(response_anonymous.status_code, HTTPStatus.FOUND)
+        self.assertRedirects(response_anonymous,
+                             f"{reverse('users:login')}?next={logout_url}")
