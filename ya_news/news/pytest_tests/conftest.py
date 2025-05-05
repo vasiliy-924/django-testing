@@ -1,21 +1,40 @@
 # conftest.py
 from datetime import timedelta
-import pytest
 
+import pytest
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.test.client import Client
 from django.urls import reverse
 from django.utils import timezone
-from django.test.client import Client
 
-from news.models import News, Comment
+from news.models import Comment, News
 
 
 User = get_user_model()
 
 pytestmark = pytest.mark.django_db
 
-# ----------------------------------------------------------------
+@pytest.fixture
+def home_url():
+    """URL главной страницы."""
+    return reverse('news:home')
+
+@pytest.fixture
+def detail_url(news):
+    """URL страницы новости."""
+    return reverse('news:detail', args=(news.id,))
+
+@pytest.fixture
+def delete_url(comment):
+    """URL удаления комментария."""
+    return reverse('news:delete', args=(comment.id,))
+
+@pytest.fixture
+def edit_url(comment):
+    """URL редактирования комментария."""
+    return reverse('news:edit', args=(comment.id,))
+
 @pytest.fixture
 def author():
     """Пользователь-автор комментариев."""
@@ -39,7 +58,6 @@ def reader_client(reader):
     client = Client()
     client.force_login(reader)
     return client
-# ----------------------------------------------------------------------
 
 
 @pytest.fixture
@@ -90,7 +108,5 @@ def comments_for_news(author, news):
         c.save()
     return Comment.objects.filter(news=news)
 
-@pytest.fixture
-def detail_url(news):
-    """URL страницы детализации конкретной новости."""
-    return reverse('news:detail', args=(news.id,))
+
+
