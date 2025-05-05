@@ -15,7 +15,7 @@ from pytest_lazyfixture import lazy_fixture
         ('users:login', None, 'GET'),
         ('users:logout', None, 'POST'),
         ('users:signup', None, 'GET'),
-        ('news:detail', lazy_fixture('news_id'), 'GET'),
+        ('news:detail', lazy_fixture('news_id'), 'GET'),  #<----- (news.id,)
     ]
 )
 def test_pages_availability(client, name, args, method):

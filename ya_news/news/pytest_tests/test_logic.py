@@ -10,16 +10,16 @@ from news.models import Comment
 pytestmark = pytest.mark.django_db
 
 
-def test_anonymous_user_cant_create_comment(client, news_id, form_data):
-    url = reverse('news:detail', args=news_id)
+def test_anonymous_user_cant_create_comment(client, news, form_data):
+    url = reverse('news:detail', args=(news.id,))
     client.post(url, data=form_data)
     assert Comment.objects.count() == 0
 
 
 def test_user_can_create_comment(
-        author_client, author, news, news_id, form_data
+        author_client, author, news, form_data
 ):
-    url = reverse('news:detail', args=news_id)
+    url = reverse('news:detail', args=(news.id,))
     response = author_client.post(url, data=form_data)
     assert response.status_code == HTTPStatus.FOUND
     assert response.url == f'{url}#comments'
@@ -30,8 +30,8 @@ def test_user_can_create_comment(
     assert new_comment.author == author
 
 
-def test_user_cant_use_bad_words(author_client, news_id):
-    url = reverse('news:detail', args=news_id)
+def test_user_cant_use_bad_words(author_client, news):
+    url = reverse('news:detail', args=(news.id,))
     data = {'text': f'Какой-то текст, {BAD_WORDS[0]}, еще текст'}
     response = author_client.post(url, data=data)
     form = response.context['form']
@@ -47,10 +47,10 @@ def test_user_cant_use_bad_words(author_client, news_id):
     ]
 )
 def test_delete_comment(
-    client_fixture, request, comment, news_id, expect_redirect, expected_status
+    client_fixture, request, comment, news, expect_redirect, expected_status
 ):
     client = request.getfixturevalue(client_fixture)
-    detail_url = reverse('news:detail', args=news_id) + '#comments'
+    detail_url = reverse('news:detail', args=(news.id,)) + '#comments'
     delete_url = reverse('news:delete', args=(comment.id,))
     response = client.delete(delete_url)
     assert response.status_code == expected_status
@@ -67,11 +67,11 @@ def test_delete_comment(
     ]
 )
 def test_edit_comment(
-    client_fixture, request, comment, news_id,
+    client_fixture, request, comment, news,
     form_data, expected_status, expected_text
 ):
     client = request.getfixturevalue(client_fixture)
-    detail_url = reverse('news:detail', args=news_id) + '#comments'
+    detail_url = reverse('news:detail', args=(news.id,)) + '#comments'
     edit_url = reverse('news:edit', args=(comment.id,))
     response = client.post(edit_url, data=form_data)
     assert response.status_code == expected_status
