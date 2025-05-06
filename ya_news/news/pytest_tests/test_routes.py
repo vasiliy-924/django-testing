@@ -1,4 +1,3 @@
-# test_routes.py
 from http import HTTPStatus
 
 import pytest

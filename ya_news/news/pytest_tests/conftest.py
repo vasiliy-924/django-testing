@@ -1,4 +1,3 @@
-# conftest.py
 from datetime import timedelta
 
 import pytest
