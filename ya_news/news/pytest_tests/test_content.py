@@ -10,9 +10,11 @@ User = get_user_model()
 
 pytestmark = pytest.mark.django_db
 
+
 def test_news_count(client, news_items, home_url):
     """
-    Главная страница должна показывать ровно NEWS_COUNT_ON_HOME_PAGE новостей.
+    Главная страница должна показывать ровно
+    NEWS_COUNT_ON_HOME_PAGE новостей.
     """
     response = client.get(home_url)
     assert len(response.context['object_list']
@@ -20,9 +22,7 @@ def test_news_count(client, news_items, home_url):
 
 
 def test_news_order(client, news_items, home_url):
-    """
-    Новости на главной должны быть в порядке убывания даты.
-    """
+    """Новости на главной должны быть в порядке убывания даты."""
     response = client.get(home_url)
     news_queryset = response.context['object_list']
     dates = [news.date for news in news_queryset]
@@ -31,7 +31,8 @@ def test_news_order(client, news_items, home_url):
 
 def test_comments_order(client, comments_for_news, detail_url):
     """
-    На странице детали комментарии должны идти по возрастанию времени создания.
+    На странице детали комментарии должны идти
+    по возрастанию времени создания.
     """
     response = client.get(detail_url)
     timestamps = [
@@ -40,16 +41,12 @@ def test_comments_order(client, comments_for_news, detail_url):
 
 
 def test_comment_form_for_anonymous(client, detail_url):
-    """
-    Анонимный пользователь не видит форму комментария.
-    """
+    """Анонимный пользователь не видит форму комментария."""
     response = client.get(detail_url)
     assert response.context.get('form') is None
 
 
 def test_comment_form_for_author_user(author_client, detail_url):
-    """
-    Авторизованный пользователь видит форму комментария нужного типа.
-    """
+    """Авторизованный пользователь видит форму комментария нужного типа."""
     response = author_client.get(detail_url)
     assert isinstance(response.context.get('form'), CommentForm)

@@ -15,25 +15,48 @@ User = get_user_model()
 
 pytestmark = pytest.mark.django_db
 
+
 @pytest.fixture
 def home_url():
     """URL главной страницы."""
     return reverse('news:home')
+
+
+@pytest.fixture
+def login_url():
+    """URL входа автора."""
+    return reverse('users:login')
+
+
+@pytest.fixture
+def logout_url():
+    """URL выхода автора."""
+    return reverse('users:logout')
+
+
+@pytest.fixture
+def signup_url():
+    """URL регистрации автора."""
+    return reverse('users:signup')
+
 
 @pytest.fixture
 def detail_url(news):
     """URL страницы новости."""
     return reverse('news:detail', args=(news.id,))
 
+
 @pytest.fixture
 def delete_url(comment):
     """URL удаления комментария."""
     return reverse('news:delete', args=(comment.id,))
 
+
 @pytest.fixture
 def edit_url(comment):
     """URL редактирования комментария."""
     return reverse('news:edit', args=(comment.id,))
+
 
 @pytest.fixture
 def author():
@@ -43,6 +66,7 @@ def author():
 
 @pytest.fixture
 def reader():
+    """Пользователь-читатель комментариев."""
     return User.objects.create(username='Читатель простой')
 
 
@@ -81,6 +105,11 @@ def comment(author, news):
 
 @pytest.fixture
 def news_items():
+    """
+    Создаёт в базе на +1 новость больше, чем отображается на главной странице:
+    NEWS_COUNT_ON_HOME_PAGE + 1 объектов News с постепенным уменьшением даты.
+    Полезно для проверки количества и порядка вывода новостей.
+    """
     return News.objects.bulk_create([
         News(
             title=f'Новость {i}',
@@ -107,6 +136,3 @@ def comments_for_news(author, news):
         c.created = now + timedelta(days=idx)
         c.save()
     return Comment.objects.filter(news=news)
-
-
-
