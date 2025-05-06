@@ -1,6 +1,5 @@
-# test_content.py
 from .base import BaseTestCase
-from .urls_for_tests import NOTES_LIST_URL, NOTES_ADD_URL, NOTES_EDIT_URL
+from .urls_for_tests import NOTES_LIST_URL, NOTES_ADD_URL, OTHER_EDIT_URL
 from notes.forms import NoteForm
 
 
@@ -35,7 +34,7 @@ class TestContent(BaseTestCase):
         Страницы создания и редактирования должны возвращать
         корректную форму NoteForm.
         """
-        for url in (NOTES_ADD_URL, NOTES_EDIT_URL):
+        for url in (NOTES_ADD_URL, OTHER_EDIT_URL):
             response = self.user_client.get(url)
             form = response.context.get('form')
             self.assertIsInstance(form, NoteForm)

@@ -5,6 +5,7 @@ from .urls_for_tests import NOTE_SLUG, OTHER_SLUG
 
 User = get_user_model()
 
+
 class BaseTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -33,3 +34,14 @@ class BaseTestCase(TestCase):
 
         cls.user_client = Client()
         cls.user_client.force_login(cls.user)
+
+        cls.form_data = {
+            'title': 'Новая заметка',
+            'text': 'Текст',
+            'slug': 'unique-slug',
+        }
+        cls.new_data = {
+            'title': 'Новый заголовок',
+            'text': 'Новый текст',
+            'slug': 'new-slug',
+        }
