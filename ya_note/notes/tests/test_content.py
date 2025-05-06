@@ -10,9 +10,7 @@ class TestContent(BaseTestCase):
     """
 
     def test_notes_list_for_author(self):
-        """
-        Автор должен видеть свою заметку в списке со всеми полями.
-        """
+        """Автор должен видеть свою заметку в списке со всеми полями."""
         response = self.author_client.get(NOTES_LIST_URL)
         self.assertIn('object_list', response.context)
         obj_list = response.context['object_list']
@@ -25,7 +23,10 @@ class TestContent(BaseTestCase):
         self.assertEqual(note_ctx.author, self.note.author)
 
     def test_notes_list_for_other_user(self):
-        """Другой пользователь не должен видеть чужую заметку в общем списке."""
+        """
+        Другой пользователь не должен видеть
+        чужую заметку в общем списке.
+        """
         response = self.reader_client.get(NOTES_LIST_URL)
         self.assertNotIn(self.note, response.context['object_list'])
 
