@@ -46,15 +46,31 @@ def detail_url(news):
 
 
 @pytest.fixture
+def detail_url_with_comments(detail_url):
+    """URL страницы новости с якорем на комментарии."""
+    return f'{detail_url}#comments'
+
+
+@pytest.fixture
 def delete_url(comment):
     """URL удаления комментария."""
     return reverse('news:delete', args=(comment.id,))
 
 
 @pytest.fixture
+def delete_login_redirect(delete_url, login_url):
+    return f"{login_url}?next={delete_url}"
+
+
+@pytest.fixture
 def edit_url(comment):
     """URL редактирования комментария."""
     return reverse('news:edit', args=(comment.id,))
+
+
+@pytest.fixture
+def edit_login_redirect(edit_url, login_url):
+    return f"{login_url}?next={edit_url}"
 
 
 @pytest.fixture
@@ -109,14 +125,14 @@ def news_items():
     NEWS_COUNT_ON_HOME_PAGE + 1 объектов News с постепенным уменьшением даты.
     Полезно для проверки количества и порядка вывода новостей.
     """
-    return News.objects.bulk_create([
+    News.objects.bulk_create(
         News(
             title=f'Новость {i}',
             text='Просто текст',
             date=timezone.now() - timedelta(days=i)
         )
         for i in range(settings.NEWS_COUNT_ON_HOME_PAGE + 1)
-    ])
+    )
 
 
 @pytest.fixture
@@ -134,4 +150,3 @@ def comments_for_news(author, news):
         )
         c.created = now + timedelta(days=idx)
         c.save()
-    return Comment.objects.filter(news=news)

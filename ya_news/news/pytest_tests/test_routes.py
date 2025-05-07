@@ -13,6 +13,11 @@ SIGNUP_URL = lazy_fixture('signup_url')
 DETAIL_URL = lazy_fixture('detail_url')
 EDIT_URL = lazy_fixture('edit_url')
 DELETE_URL = lazy_fixture('delete_url')
+EDIT_LOGIN_REDIRECT = lazy_fixture('edit_login_redirect')
+DELETE_LOGIN_REDIRECT = lazy_fixture('delete_login_redirect')
+
+READER_CLIENT = lazy_fixture('reader_client')
+AUTHOR_CLIENT = lazy_fixture('author_client')
 
 
 @pytest.mark.parametrize('url, method', [
@@ -28,30 +33,30 @@ def test_pages_availability(client, url, method):
     assert response.status_code == HTTPStatus.OK
 
 
-@pytest.mark.parametrize('client, url, expected_status', [
-    (lazy_fixture('reader_client'), EDIT_URL, HTTPStatus.NOT_FOUND),
-    (lazy_fixture('reader_client'), DELETE_URL, HTTPStatus.NOT_FOUND),
-    (lazy_fixture('author_client'), EDIT_URL, HTTPStatus.OK),
-    (lazy_fixture('author_client'), DELETE_URL, HTTPStatus.OK),
+@pytest.mark.parametrize('client, expected_status', [
+    (READER_CLIENT, HTTPStatus.NOT_FOUND),
+    (AUTHOR_CLIENT, HTTPStatus.OK),
 ])
-def test_comment_edit_delete_availability(client, url, expected_status):
+def test_comment_edit_delete_availability(
+    client, expected_status, edit_url, delete_url
+):
     """
-    Проверяем коды доступа к редактированию и удалению комментариев
-    для разных типов пользователей.
+    Проверяем доступ к редактированию и удалению комментариев
+    для reader и author клиентов.
     """
-    response = client.get(url)
-    assert response.status_code == expected_status
+    for target in (edit_url, delete_url):
+        response = client.get(target)
+        assert response.status_code == expected_status
 
 
-@pytest.mark.parametrize('url', ['edit_url', 'delete_url'])
-def test_redirect_for_anonymous(client, url, request):
+@pytest.mark.parametrize('target_url, expected_redirect', [
+    (EDIT_URL, EDIT_LOGIN_REDIRECT),
+    (DELETE_URL, DELETE_LOGIN_REDIRECT),
+])
+def test_redirect_for_anonymous(client, target_url, expected_redirect):
     """
     Анонимный пользователь перенаправляется на страницу логина
     c параметром next=<target_url>.
     """
-    target = request.getfixturevalue(url)
-    login = request.getfixturevalue('login_url')
-    expect = f'{login}?next={target}'
-
-    response = client.get(target)
-    assertRedirects(response, expect)
+    response = client.get(target_url)
+    assertRedirects(response, expected_redirect, status_code=HTTPStatus.FOUND)

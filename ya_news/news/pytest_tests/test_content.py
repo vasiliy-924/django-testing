@@ -15,16 +15,13 @@ def test_news_count(client, news_items, home_url):
     Главная страница должна показывать ровно
     NEWS_COUNT_ON_HOME_PAGE новостей.
     """
-    response = client.get(home_url)
-    assert len(response.context['object_list']
+    assert len(client.get(home_url).context['object_list']
                ) == settings.NEWS_COUNT_ON_HOME_PAGE
 
 
 def test_news_order(client, news_items, home_url):
     """Новости на главной должны быть в порядке убывания даты."""
-    response = client.get(home_url)
-    news_queryset = response.context['object_list']
-    dates = [news.date for news in news_queryset]
+    dates = [news.date for news in client.get(home_url).context['object_list']]
     assert dates == sorted(dates, reverse=True)
 
 
@@ -41,11 +38,12 @@ def test_comments_order(client, comments_for_news, detail_url):
 
 def test_comment_form_for_anonymous(client, detail_url):
     """Анонимный пользователь не видит форму комментария."""
-    response = client.get(detail_url)
-    assert response.context.get('form') is None
+    assert client.get(detail_url).context.get('form') is None
 
 
 def test_comment_form_for_author_user(author_client, detail_url):
     """Авторизованный пользователь видит форму комментария нужного типа."""
-    response = author_client.get(detail_url)
-    assert isinstance(response.context.get('form'), CommentForm)
+    assert isinstance(
+        author_client.get(detail_url).context.get('form'),
+        CommentForm
+    )
