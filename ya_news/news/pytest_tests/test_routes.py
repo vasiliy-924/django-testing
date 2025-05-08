@@ -20,17 +20,22 @@ READER_CLIENT = lazy_fixture('reader_client')
 AUTHOR_CLIENT = lazy_fixture('author_client')
 
 
-@pytest.mark.parametrize('url, method', [
-    (HOME_URL, 'GET'),
-    (LOGIN_URL, 'GET'),
-    (LOGOUT_URL, 'POST'),
-    (SIGNUP_URL, 'GET'),
-    (DETAIL_URL, 'GET'),
-])
-def test_pages_availability(client, url, method):
+def test_pages_availability(
+    client,
+    home_url, login_url, logout_url,
+    signup_url, detail_url
+):
     """Общая проверка доступности (200 OK) для всех основных страниц."""
-    response = client.generic(method, url)
-    assert response.status_code == HTTPStatus.OK
+    urls_and_methods = [
+        (home_url, 'GET'),
+        (login_url, 'GET'),
+        (logout_url, 'POST'),
+        (signup_url, 'GET'),
+        (detail_url, 'GET'),
+    ]
+    for url, method in urls_and_methods:
+        response = client.generic(method, url)
+        assert response.status_code == HTTPStatus.OK
 
 
 @pytest.mark.parametrize('client, expected_status', [

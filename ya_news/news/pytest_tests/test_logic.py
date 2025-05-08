@@ -8,7 +8,10 @@ from news.models import Comment
 pytestmark = pytest.mark.django_db
 
 FORM_DATA = {'text': 'Новый текст'}
-BAD_WORD_TEXT = 'Какой-то текст, {}, еще текст'
+BAD_WORD_FORM_DATAS = [
+    (bw, {'text': f"Какой-то текст, {bw}, еще текст"})
+    for bw in BAD_WORDS
+]
 
 
 def test_anonymous_user_cant_create_comment(client, detail_url):
@@ -36,10 +39,9 @@ def test_user_can_create_comment(
     assert new_comment.author == author
 
 
-@pytest.mark.parametrize('bad_word', BAD_WORDS)
-def test_user_cant_use_bad_words(author_client, detail_url, bad_word):
+@pytest.mark.parametrize('bad_word,data', BAD_WORD_FORM_DATAS)
+def test_user_cant_use_bad_words(author_client, detail_url, bad_word, data):
     """Комментарий с запрещённым словом не проходит валидацию."""
-    data = {'text': BAD_WORD_TEXT.format(bad_word)}
     response = author_client.post(detail_url, data=data)
     form = response.context['form']
     assert WARNING in form.errors['text']
@@ -50,27 +52,30 @@ def test_author_can_delete_comment(
     author_client, delete_url, detail_url_with_comments, comment
 ):
     """Автор комментария может удалить свой комментарий."""
-    before_ids = set(Comment.objects.values_list('id', flat=True))
+    before_ids = Comment.objects.count()
 
     response = author_client.delete(delete_url)
     assert response.status_code == HTTPStatus.FOUND
     assert response.url == detail_url_with_comments
 
-    after_ids = set(Comment.objects.values_list('id', flat=True))
-    assert comment.id in before_ids
-    assert comment.id not in after_ids
-    assert after_ids == (before_ids - {comment.id})
+    assert Comment.objects.count() == before_ids - 1
+    assert not Comment.objects.filter(id=comment.id).exists()
 
 
-def test_reader_cant_delete_comment(reader_client, delete_url):
+def test_reader_cant_delete_comment(reader_client, delete_url, comment):
     """Чужой пользователь не может удалить комментарий."""
-    before_ids = set(Comment.objects.values_list('id', flat=True))
+    original_text = comment.text
+    original_author = comment.author
+    original_news = comment.news
+    original_count = Comment.objects.count()
 
-    response = reader_client.delete(delete_url)
-    after_ids = set(Comment.objects.values_list('id', flat=True))
+    assert reader_client.delete(delete_url).status_code == HTTPStatus.NOT_FOUND
+    assert Comment.objects.count() == original_count
 
-    assert response.status_code == HTTPStatus.NOT_FOUND
-    assert before_ids == after_ids
+    existing_comment = Comment.objects.get(id=comment.id)
+    assert existing_comment.text == original_text
+    assert existing_comment.author == original_author
+    assert existing_comment.news == original_news
 
 
 def test_author_can_edit_comment(
