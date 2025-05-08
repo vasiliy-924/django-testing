@@ -1,8 +1,10 @@
-
-
-from .base import BaseTestCase
+from .base import (
+    BaseTestCase,
+    NOTES_ADD_URL,
+    NOTES_EDIT_URL,
+    NOTES_LIST_URL
+)
 from notes.forms import NoteForm
-from notes.models import Note
 
 
 class TestContent(BaseTestCase):
@@ -13,12 +15,12 @@ class TestContent(BaseTestCase):
 
     def test_notes_list_for_author(self):
         """Автор должен видеть свою заметку в списке со всеми полями."""
-        response = self.author_client.get(self.NOTES_LIST_URL)
+        response = self.author_client.get(NOTES_LIST_URL)
         self.assertIn('object_list', response.context)
         obj_list = response.context['object_list']
         self.assertIn(self.note, obj_list)
 
-        note_from_db = Note.objects.get(slug=self.note.slug)
+        note_from_db = obj_list.get(slug=self.NOTE_SLUG)
         self.assertEqual(note_from_db.title, self.note.title)
         self.assertEqual(note_from_db.text, self.note.text)
         self.assertEqual(note_from_db.slug, self.note.slug)
@@ -31,7 +33,7 @@ class TestContent(BaseTestCase):
         """
         self.assertNotIn(
             self.note,
-            self.reader_client.get(self.NOTES_LIST_URL).context['object_list']
+            self.reader_client.get(NOTES_LIST_URL).context['object_list']
         )
 
     def test_create_and_edit_pages_contain_form(self):
@@ -39,7 +41,7 @@ class TestContent(BaseTestCase):
         Страницы создания и редактирования должны возвращать
         корректную форму NoteForm.
         """
-        for url in (self.NOTES_ADD_URL, self.NOTES_EDIT_URL):
+        for url in (NOTES_ADD_URL, NOTES_EDIT_URL):
             with self.subTest(url=url):
                 self.assertIsInstance(
                     self.author_client.get(url).context.get('form'),

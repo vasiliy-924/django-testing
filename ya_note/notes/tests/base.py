@@ -17,7 +17,7 @@ class BaseTestCase(TestCase):
 
         cls.note = Note.objects.create(
             title='Тестовая заметка',
-            text='Текст',
+            text='Текст тестовой заметки',
             slug=cls.NOTE_SLUG,
             author=cls.author
         )
@@ -30,19 +30,27 @@ class BaseTestCase(TestCase):
 
         cls.form_data = {
             'title': 'Новая заметка',
-            'text': 'Текст',
+            'text': 'Текст новой заметки',
             'slug': 'unique-slug',
         }
 
-        cls.NOTES_LIST_URL = reverse('notes:list')
-        cls.NOTES_ADD_URL = reverse('notes:add')
-        cls.NOTES_SUCCESS_URL = reverse('notes:success')
-        cls.NOTES_EDIT_URL = reverse('notes:edit', args=(cls.NOTE_SLUG,))
-        cls.NOTES_DELETE_URL = reverse('notes:delete', args=(cls.NOTE_SLUG,))
-        cls.NOTES_DETAIL_URL = reverse('notes:detail', args=(cls.NOTE_SLUG,))
 
-    @classmethod
-    def get_expected_redirect(cls, url):
-        """Возвращает URL перенаправления на логин с параметром next."""
-        login_url = reverse('users:login')
-        return f'{login_url}?next={url}'
+NOTE_SLUG = BaseTestCase.NOTE_SLUG
+NOTES_LIST_URL = reverse('notes:list')
+NOTES_ADD_URL = reverse('notes:add')
+NOTES_SUCCESS_URL = reverse('notes:success')
+NOTES_EDIT_URL = reverse('notes:edit', args=(NOTE_SLUG,))
+NOTES_DELETE_URL = reverse('notes:delete', args=(NOTE_SLUG,))
+NOTES_DETAIL_URL = reverse('notes:detail', args=(NOTE_SLUG,))
+NOTES_HOME_URL = reverse('notes:home')
+USERS_LOGIN_URL = reverse('users:login')
+USERS_SIGNUP_URL = reverse('users:signup')
+
+LOGIN_REDIRECTS = {
+    NOTES_LIST_URL: f'{USERS_LOGIN_URL}?next={NOTES_LIST_URL}',
+    NOTES_ADD_URL: f'{USERS_LOGIN_URL}?next={NOTES_ADD_URL}',
+    NOTES_SUCCESS_URL: f'{USERS_LOGIN_URL}?next={NOTES_SUCCESS_URL}',
+    NOTES_EDIT_URL: f'{USERS_LOGIN_URL}?next={NOTES_EDIT_URL}',
+    NOTES_DELETE_URL: f'{USERS_LOGIN_URL}?next={NOTES_DELETE_URL}',
+    NOTES_DETAIL_URL: f'{USERS_LOGIN_URL}?next={NOTES_DETAIL_URL}',
+}
