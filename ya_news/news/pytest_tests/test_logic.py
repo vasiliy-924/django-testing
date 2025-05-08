@@ -9,7 +9,7 @@ pytestmark = pytest.mark.django_db
 
 FORM_DATA = {'text': 'Новый текст'}
 BAD_WORD_FORM_DATAS = [
-    (bw, {'text': f"Какой-то текст, {bw}, еще текст"})
+    ({"text": f"Какой-то текст, {bw}, еще текст"})
     for bw in BAD_WORDS
 ]
 
@@ -39,8 +39,8 @@ def test_user_can_create_comment(
     assert new_comment.author == author
 
 
-@pytest.mark.parametrize('bad_word,data', BAD_WORD_FORM_DATAS)
-def test_user_cant_use_bad_words(author_client, detail_url, bad_word, data):
+@pytest.mark.parametrize('data', BAD_WORD_FORM_DATAS)
+def test_user_cant_use_bad_words(author_client, detail_url, data):
     """Комментарий с запрещённым словом не проходит валидацию."""
     response = author_client.post(detail_url, data=data)
     form = response.context['form']
@@ -64,18 +64,17 @@ def test_author_can_delete_comment(
 
 def test_reader_cant_delete_comment(reader_client, delete_url, comment):
     """Чужой пользователь не может удалить комментарий."""
-    original_text = comment.text
-    original_author = comment.author
-    original_news = comment.news
     original_count = Comment.objects.count()
 
-    assert reader_client.delete(delete_url).status_code == HTTPStatus.NOT_FOUND
+    response = reader_client.delete(delete_url)
+    assert response.status_code == HTTPStatus.NOT_FOUND
     assert Comment.objects.count() == original_count
 
+    assert Comment.objects.filter(id=comment.id).exists()
     existing_comment = Comment.objects.get(id=comment.id)
-    assert existing_comment.text == original_text
-    assert existing_comment.author == original_author
-    assert existing_comment.news == original_news
+    assert existing_comment.text == comment.text
+    assert existing_comment.author == comment.author
+    assert existing_comment.news == comment.news
 
 
 def test_author_can_edit_comment(

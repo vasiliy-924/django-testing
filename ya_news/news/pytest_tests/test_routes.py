@@ -38,20 +38,19 @@ def test_pages_availability(
         assert response.status_code == HTTPStatus.OK
 
 
-@pytest.mark.parametrize('client, expected_status', [
-    (READER_CLIENT, HTTPStatus.NOT_FOUND),
-    (AUTHOR_CLIENT, HTTPStatus.OK),
+@pytest.mark.parametrize('client, url, expected_status', [
+    (READER_CLIENT, EDIT_URL, HTTPStatus.NOT_FOUND),
+    (READER_CLIENT, DELETE_URL, HTTPStatus.NOT_FOUND),
+    (AUTHOR_CLIENT, EDIT_URL, HTTPStatus.OK),
+    (AUTHOR_CLIENT, DELETE_URL, HTTPStatus.OK),
 ])
-def test_comment_edit_delete_availability(
-    client, expected_status, edit_url, delete_url
-):
+def test_comment_edit_delete_availability(client, url, expected_status):
     """
     Проверяем доступ к редактированию и удалению комментариев
     для reader и author клиентов.
     """
-    for target in (edit_url, delete_url):
-        response = client.get(target)
-        assert response.status_code == expected_status
+    response = client.get(url)
+    assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize('target_url, expected_redirect', [
@@ -63,5 +62,4 @@ def test_redirect_for_anonymous(client, target_url, expected_redirect):
     Анонимный пользователь перенаправляется на страницу логина
     c параметром next=<target_url>.
     """
-    response = client.get(target_url)
-    assertRedirects(response, expected_redirect, status_code=HTTPStatus.FOUND)
+    assertRedirects(client.get(target_url), expected_redirect, status_code=HTTPStatus.FOUND)
