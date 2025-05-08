@@ -2,13 +2,18 @@ from http import HTTPStatus
 
 from .base import (
     BaseTestCase,
-    LOGIN_REDIRECTS,
+    NOTES_ADD_REDIRECT,
     NOTES_ADD_URL,
+    NOTES_DELETE_REDIRECT,
     NOTES_DELETE_URL,
+    NOTES_DETAIL_REDIRECT,
     NOTES_DETAIL_URL,
+    NOTES_EDIT_REDIRECT,
     NOTES_EDIT_URL,
     NOTES_HOME_URL,
+    NOTES_LIST_REDIRECT,
     NOTES_LIST_URL,
+    NOTES_SUCCESS_REDIRECT,
     NOTES_SUCCESS_URL,
     USERS_LOGIN_URL,
     USERS_SIGNUP_URL,
@@ -62,6 +67,16 @@ class TestRoutes(BaseTestCase):
         Контроль перенаправлений анонимного пользователя
         на страницу логина с параметром next.
         """
-        for url, expected_redirect in LOGIN_REDIRECTS.items():
+        redirect_cases = [
+            (NOTES_LIST_URL, NOTES_LIST_REDIRECT),
+            (NOTES_ADD_URL, NOTES_ADD_REDIRECT),
+            (NOTES_SUCCESS_URL, NOTES_SUCCESS_REDIRECT),
+            (NOTES_EDIT_URL, NOTES_EDIT_REDIRECT),
+            (NOTES_DELETE_URL, NOTES_DELETE_REDIRECT),
+            (NOTES_DETAIL_URL, NOTES_DETAIL_REDIRECT),
+        ]
+
+        for url, expected_redirect in redirect_cases:
             with self.subTest(url=url):
-                self.assertRedirects(self.client.get(url), expected_redirect)
+                response = self.client.get(url)
+                self.assertRedirects(response, expected_redirect)

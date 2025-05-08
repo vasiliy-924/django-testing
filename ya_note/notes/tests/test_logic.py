@@ -51,14 +51,12 @@ class TestNoteCreation(BaseTestCase):
         и сохраняется корректно вместе с остальными полями.
         """
         self.form_data['slug'] = ''
-
+        notes_count_before = Note.objects.count()
         before_slugs = set(Note.objects.values_list('slug', flat=True))
-        response = self.author_client.post(
-            NOTES_ADD_URL,
-            data=self.form_data
-        )
+        response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
         self.assertRedirects(response, NOTES_SUCCESS_URL)
 
+        self.assertEqual(Note.objects.count(), notes_count_before + 1)
         created = Note.objects.exclude(slug__in=before_slugs).get()
         self.assertEqual(created.slug, slugify(self.form_data['title']))
         self.assertEqual(created.title, self.form_data['title'])
@@ -116,10 +114,10 @@ class TestNoteCreation(BaseTestCase):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         note = Note.objects.get(pk=self.note.pk)
-        self.assertEqual(note.title, 'Тестовая заметка')
-        self.assertEqual(note.text, 'Текст тестовой заметки')
-        self.assertEqual(note.slug, self.NOTE_SLUG)
-        self.assertEqual(note.author, self.author)
+        self.assertEqual(note.title, self.note.title)
+        self.assertEqual(note.text, self.note.text)
+        self.assertEqual(note.slug, self.note.slug)
+        self.assertEqual(note.author, self.note.author)
 
     def test_author_can_delete_note(self):
         """
@@ -146,3 +144,11 @@ class TestNoteCreation(BaseTestCase):
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
         self.assertEqual(before, set(Note.objects.all()))
+        self.assertTrue(
+            Note.objects.filter(
+                title=self.note.title,
+                text=self.note.text,
+                slug=self.note.slug,
+                author=self.note.author
+            ).exists()
+        )

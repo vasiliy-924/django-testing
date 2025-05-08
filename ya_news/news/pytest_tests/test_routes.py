@@ -62,4 +62,5 @@ def test_redirect_for_anonymous(client, target_url, expected_redirect):
     Анонимный пользователь перенаправляется на страницу логина
     c параметром next=<target_url>.
     """
-    assertRedirects(client.get(target_url), expected_redirect, status_code=HTTPStatus.FOUND)
+    assertRedirects(client.get(target_url), expected_redirect,
+                    status_code=HTTPStatus.FOUND)
