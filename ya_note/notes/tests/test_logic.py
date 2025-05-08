@@ -50,18 +50,21 @@ class TestNoteCreation(BaseTestCase):
         При отсутствии 'slug' он генерирутеся из 'title',
         и сохраняется корректно вместе с остальными полями.
         """
+        before = set(Note.objects.all())
         self.form_data['slug'] = ''
-        notes_count_before = Note.objects.count()
-        before_slugs = set(Note.objects.values_list('slug', flat=True))
-        response = self.author_client.post(NOTES_ADD_URL, data=self.form_data)
-        self.assertRedirects(response, NOTES_SUCCESS_URL)
+        self.assertRedirects(
+            self.author_client.post(NOTES_ADD_URL, data=self.form_data),
+            NOTES_SUCCESS_URL
+        )
 
-        self.assertEqual(Note.objects.count(), notes_count_before + 1)
-        created = Note.objects.exclude(slug__in=before_slugs).get()
-        self.assertEqual(created.slug, slugify(self.form_data['title']))
-        self.assertEqual(created.title, self.form_data['title'])
-        self.assertEqual(created.text, self.form_data['text'])
-        self.assertEqual(created.author, self.author)
+        new_notes = set(Note.objects.all()) - before
+        self.assertEqual(len(new_notes), 1)
+
+        new_note = new_notes.pop()
+        self.assertEqual(new_note.slug, slugify(self.form_data['title']))
+        self.assertEqual(new_note.title, self.form_data['title'])
+        self.assertEqual(new_note.text, self.form_data['text'])
+        self.assertEqual(new_note.author, self.author)
 
     def test_duplicate_slug_does_not_create_new_note(self):
         """
@@ -69,7 +72,7 @@ class TestNoteCreation(BaseTestCase):
         форма возвращает предупреждение, а в БД не создается новая запись.
         """
         self.form_data['slug'] = Note.objects.first().slug
-        before_slugs = set(Note.objects.all())
+        before_notes = set(Note.objects.all())
 
         response = self.author_client.post(
             NOTES_ADD_URL,
@@ -81,7 +84,7 @@ class TestNoteCreation(BaseTestCase):
             status_code=HTTPStatus.OK,
         )
         self.assertEqual(
-            before_slugs,
+            before_notes,
             set(Note.objects.all())
         )
 
@@ -140,15 +143,14 @@ class TestNoteCreation(BaseTestCase):
         """
         before = set(Note.objects.all())
 
-        response = self.reader_client.post(NOTES_DELETE_URL)
-        self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
-
-        self.assertEqual(before, set(Note.objects.all()))
-        self.assertTrue(
-            Note.objects.filter(
-                title=self.note.title,
-                text=self.note.text,
-                slug=self.note.slug,
-                author=self.note.author
-            ).exists()
+        self.assertEqual(
+            self.reader_client.post(NOTES_DELETE_URL).status_code,
+            HTTPStatus.NOT_FOUND
         )
+        self.assertEqual(before, set(Note.objects.all()))
+
+        note = Note.objects.get(pk=self.note.pk)
+        self.assertEqual(note.title, self.note.title)
+        self.assertEqual(note.text, self.note.text)
+        self.assertEqual(note.slug, self.note.slug)
+        self.assertEqual(note.author, self.note.author)

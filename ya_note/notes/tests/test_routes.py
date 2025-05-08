@@ -78,5 +78,4 @@ class TestRoutes(BaseTestCase):
 
         for url, expected_redirect in redirect_cases:
             with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertRedirects(response, expected_redirect)
+                self.assertRedirects(self.client.get(url), expected_redirect)

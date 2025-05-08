@@ -1,6 +1,5 @@
 from .base import (
     BaseTestCase,
-    NOTE_SLUG,
     NOTES_ADD_URL,
     NOTES_EDIT_URL,
     NOTES_LIST_URL,
@@ -16,15 +15,10 @@ class TestContent(BaseTestCase):
 
     def test_notes_list_for_author(self):
         """Автор должен видеть свою заметку в списке со всеми полями."""
-        response = self.author_client.get(NOTES_LIST_URL)
-        obj_list = response.context['object_list']
-
-        note = self.note
-        self.assertIn(note, obj_list)
-        self.assertEqual(note.title, 'Тестовая заметка')
-        self.assertEqual(note.text, 'Текст тестовой заметки')
-        self.assertEqual(note.slug, NOTE_SLUG)
-        self.assertEqual(note.author, self.author)
+        self.assertIn(
+            self.note,
+            self.author_client.get(NOTES_LIST_URL).context['object_list']
+        )
 
     def test_notes_list_for_other_user(self):
         """
