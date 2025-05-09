@@ -72,7 +72,7 @@ class TestNoteCreation(BaseTestCase):
         форма возвращает предупреждение, а в БД не создается новая запись.
         """
         self.form_data['slug'] = Note.objects.first().slug
-        before_notes = set(Note.objects.all())
+        notes = set(Note.objects.all())
 
         response = self.author_client.post(
             NOTES_ADD_URL,
@@ -84,7 +84,7 @@ class TestNoteCreation(BaseTestCase):
             status_code=HTTPStatus.OK,
         )
         self.assertEqual(
-            before_notes,
+            notes,
             set(Note.objects.all())
         )
 
