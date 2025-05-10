@@ -18,12 +18,8 @@ class TestContent(BaseTestCase):
         response = self.author_client.get(NOTES_LIST_URL)
         notes = response.context['object_list']
 
-        note = notes.filter(id=self.note.id).first()
         self.assertIn(self.note, notes)
-        self.assertIsNotNone(
-            note,
-            f"Заметка с id {self.note.id} не найдена в списке заметок."
-        )
+        note = notes.get(id=self.note.id)
 
         self.assertEqual(note.title, self.note.title)
         self.assertEqual(note.text, self.note.text)
