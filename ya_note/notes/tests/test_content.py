@@ -2,7 +2,6 @@ from .base import (
     BaseTestCase,
     NOTES_ADD_URL,
     NOTES_EDIT_URL,
-    NOTES_DETAIL_URL,
     NOTES_LIST_URL,
 )
 from notes.forms import NoteForm
@@ -17,11 +16,19 @@ class TestContent(BaseTestCase):
     def test_notes_list_for_author(self):
         """Автор должен видеть свою заметку в списке со всеми полями."""
         response = self.author_client.get(NOTES_LIST_URL)
-        self.assertIn(self.note, response.context['object_list'])
-        self.assertContains(response, f"{self.note.id}:")
-        self.assertContains(response, self.note.title)
-        detail_url = NOTES_DETAIL_URL
-        self.assertContains(response, f'href="{detail_url}"')
+        notes = response.context['object_list']
+
+        note = notes.filter(id=self.note.id).first()
+        self.assertIn(self.note, notes)
+        self.assertIsNotNone(
+            note,
+            f"Заметка с id {self.note.id} не найдена в списке заметок."
+        )
+
+        self.assertEqual(note.title, self.note.title)
+        self.assertEqual(note.text, self.note.text)
+        self.assertEqual(note.slug, self.note.slug)
+        self.assertEqual(note.author, self.note.author)
 
     def test_notes_list_for_other_user(self):
         """

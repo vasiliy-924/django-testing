@@ -18,29 +18,32 @@ DELETE_LOGIN_REDIRECT = lazy_fixture('delete_login_redirect')
 
 READER_CLIENT = lazy_fixture('reader_client')
 AUTHOR_CLIENT = lazy_fixture('author_client')
+ANON_CLIENT = lazy_fixture('client')
 
 
-@pytest.mark.parametrize('url, method', [
-    (HOME_URL, 'GET'),
-    (LOGIN_URL, 'GET'),
-    (LOGOUT_URL, 'POST'),
-    (SIGNUP_URL, 'GET'),
-    (DETAIL_URL, 'GET'),
+@pytest.mark.parametrize('user_client, url, method, expected_status', [
+    # Основные страницы
+    (ANON_CLIENT, HOME_URL, 'GET', HTTPStatus.OK),
+    (ANON_CLIENT, LOGIN_URL, 'GET', HTTPStatus.OK),
+    (ANON_CLIENT, LOGOUT_URL, 'POST', HTTPStatus.OK),
+    (ANON_CLIENT, SIGNUP_URL, 'GET', HTTPStatus.OK),
+    (ANON_CLIENT, DETAIL_URL, 'GET', HTTPStatus.OK),
+    # Редактирование и удаление комментариев для разных ролей
+    (READER_CLIENT, EDIT_URL, 'GET', HTTPStatus.NOT_FOUND),
+    (READER_CLIENT, DELETE_URL, 'GET', HTTPStatus.NOT_FOUND),
+    (AUTHOR_CLIENT, EDIT_URL, 'GET', HTTPStatus.OK),
+    (AUTHOR_CLIENT, DELETE_URL, 'GET', HTTPStatus.OK),
+    # Перенаправления для анонимных пользователей
+    (ANON_CLIENT, EDIT_URL, 'GET', HTTPStatus.FOUND),
+    (ANON_CLIENT, DELETE_URL, 'GET', HTTPStatus.FOUND),
 ])
-def test_pages_availability(client, url, method):
-    """Доступность основных страниц (200 OK)."""
-    assert client.generic(method, url).status_code == HTTPStatus.OK
-
-
-@pytest.mark.parametrize('client, url, expected_status', [
-    (READER_CLIENT, EDIT_URL, HTTPStatus.NOT_FOUND),
-    (READER_CLIENT, DELETE_URL, HTTPStatus.NOT_FOUND),
-    (AUTHOR_CLIENT, EDIT_URL, HTTPStatus.OK),
-    (AUTHOR_CLIENT, DELETE_URL, HTTPStatus.OK),
-])
-def test_comment_edit_delete_availability(client, url, expected_status):
-    """Коды доступа к редактированию и удалению комментариев."""
-    assert client.get(url).status_code == expected_status
+def test_status_codes(user_client, url, method, expected_status):
+    """
+    Проверка кодов ответов: доступность страниц,
+    комментирование и перенаправления.
+    """
+    response = user_client.generic(method, url)
+    assert response.status_code == expected_status
 
 
 @pytest.mark.parametrize('url, expected_redirect', [
@@ -51,6 +54,5 @@ def test_redirect_for_anonymous(client, url, expected_redirect):
     """Аноним (GET) → перенаправление на логин с next."""
     assertRedirects(
         client.get(url),
-        expected_redirect,
-        status_code=HTTPStatus.FOUND,
+        expected_redirect
     )
